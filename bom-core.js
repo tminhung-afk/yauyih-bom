@@ -9,10 +9,20 @@
     return { model, description: text(description), note: text(note), heading, title: heading ? model.slice(4).trim() || "分類" : model };
   }
   function parseWorkbook(workbook, XLSX) {
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    if (!sheet) throw new Error("料表沒有工作表。");
+    if (!workbook.SheetNames.length) throw new Error("料表沒有工作表。");
+    const categories = [];
+    for (const name of workbook.SheetNames) {
+      const sheet = workbook.Sheets[name];
+      if (!sheet) throw new Error(`找不到工作表「${name}」。`);
+      const parsed = parseSheet(sheet, XLSX, name, workbook.SheetNames.length > 1);
+      categories.push(...parsed);
+    }
+    if (!categories.some(c => c.items.length)) throw new Error("料表沒有可用資料。");
+    return categories;
+  }
+  function parseSheet(sheet, XLSX, sheetName, multipleSheets) {
     const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
-    if (!matrix.length) throw new Error("料表是空白的。");
+    if (!matrix.some(row => row.some(value => text(value)))) return [];
     const header = matrix[0].map(text);
     const find = names => header.findIndex(h => names.includes(key(h)));
     const modelCol = find(modelNames);
@@ -23,7 +33,7 @@
       const noteCol = find(["備註", "note", "memo", "remarks"]);
       for (const row of matrix.slice(1)) {
         if (!text(row[modelCol])) continue;
-        const name = text(row[categoryCol]) || "匯入清單";
+        const name = text(row[categoryCol]) || (multipleSheets ? sheetName : "匯入清單");
         let category = categories.find(c => c.name === name);
         if (!category) { category = { name, items: [] }; categories.push(category); }
         category.items.push(item(row[modelCol], row[descriptionCol], row[noteCol]));
@@ -40,7 +50,7 @@
         col = noteCol >= 0 ? noteCol : col + 1;
       }
     }
-    if (!categories.some(c => c.items.length)) throw new Error("沒有可用資料。請使用「分類名稱、說明、備註」分組欄位，或「分類、型號、說明、備註」清單格式。");
+    if (!categories.length && matrix.slice(1).some(row => row.some(value => text(value)))) throw new Error(`工作表「${sheetName}」格式無法辨識。請使用「分類名稱、說明、備註」分組欄位，或「分類、型號、說明、備註」清單格式。`);
     return categories;
   }
   function fileName(name, now = new Date()) {
