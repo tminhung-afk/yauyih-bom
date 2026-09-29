@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17465b">
+  <meta name="description" content="耀毅視覺料表：載入最新料表、選擇設備與配件、輸出 Excel。">
+  <meta name="apple-mobile-web-app-title" content="耀毅料表">
+  <title>耀毅視覺料表</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=20260929">
+  <script defer src="xlsx.full.min.js"></script>
+  <script defer src="xlsx-populate.min.js"></script>
+  <script defer src="workbook-security.js?v=20260929"></script>
+  <script defer src="bom-core.js?v=20260929"></script>
+  <script defer src="app.js?v=20260929"></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">Y</span><div><h1>耀毅視覺料表</h1><p>設備選配 · 專案料表</p></div></div>
+    <span class="edition">網頁版</span>
+  </header>
+  <main>
+    <section class="toolbar" aria-label="料表工具">
+      <div class="project-field"><label for="workbookName">請輸入案件名稱</label><input id="workbookName" type="text" placeholder="例如：客戶 A 視覺檢測專案" maxlength="120" autocomplete="off"></div>
+      <div class="actions">
+        <button id="refreshButton" type="button">刷新網站料表</button>
+        <button id="selectWorkbookButton" type="button">指定料表</button>
+        <button id="downloadSourceButton" type="button" disabled>下載來源料表</button>
+        <button id="lockButton" type="button">鎖定料表</button>
+        <button id="clearButton" type="button" disabled>清空選擇</button>
+        <button id="exportButton" type="button" class="primary" disabled>輸出 Excel</button>
+      </div>
+      <input id="workbookFile" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden>
+    </section>
+    <section id="sourcePanel" class="source-panel" aria-label="料表來源">
+      <span id="sourceBadge" class="source-badge">載入中</span>
+      <div><p id="sourceStatus" role="status" aria-live="polite">正在讀取網站上的最新料表…</p><p id="sourceMeta" class="muted">請稍候。</p></div>
+    </section>
+    <p id="notice" role="status" aria-live="polite" hidden></p>
+    <section class="panel" aria-labelledby="partsHeading">
+      <header class="section-header"><div><span class="eyebrow">01 / 選擇品項</span><h2 id="partsHeading">設備與配件</h2></div><p>同分類可按「＋」加購不同型號</p></header>
+      <div id="emptyState" class="empty-state">正在準備可選品項…</div>
+      <div class="table-scroll"><table class="parts-table" aria-label="分類選料"><thead><tr><th class="number-col">項次</th><th class="category-col">品名</th><th>型號 / 說明</th><th class="quantity-col">數量 / 加購</th><th class="note-col">備註</th></tr></thead><tbody id="partsBody"></tbody></table></div>
+    </section>
+    <section class="panel output-preview" aria-labelledby="previewHeading">
+      <header class="section-header"><div><span class="eyebrow">02 / 確認與輸出</span><h2 id="previewHeading">料表預覽</h2></div><span id="selectedCount" class="count">0 項</span></header>
+      <p id="previewEmpty" class="empty-state">尚未選擇品項。選料後，這裡會即時顯示輸出內容。</p>
+      <div class="preview-scroll" id="previewWrap" hidden><table class="preview-table"><thead><tr><th>項次</th><th>型號</th><th>說明</th><th>數量</th><th>備註</th></tr></thead><tbody id="previewBody"></tbody></table></div>
+      <footer class="preview-footer"><p>檔名：<span id="filenamePreview">日期_案件名稱_料表.xlsx</span></p><a href="#workbookName">回到案件名稱 ↑</a></footer>
+    </section>
+    <footer class="page-footer">開啟時自動讀取網站料表。使用中如需更新，請按「刷新網站料表」。</footer>
+  </main>
+  <dialog id="detailDialog" aria-labelledby="detailTitle"><form method="dialog"><header><h2 id="detailTitle">品項說明</h2><button type="submit" aria-label="關閉說明">關閉</button></header><p id="detailText"></p></form></dialog>
+  <dialog id="passwordDialog" aria-labelledby="passwordTitle">
+    <form id="passwordForm">
+      <h2 id="passwordTitle">輸入共用密碼</h2>
+      <p>輸入公司提供的料表密碼，即可開始選料。</p>
+      <label for="sharedPassword">料表密碼</label>
+      <input id="sharedPassword" type="password" required autocomplete="off" autofocus>
+      <p id="passwordError" role="status" aria-live="polite"></p>
+      <div class="password-actions"><button id="cancelUnlockButton" type="button">取消</button><button id="unlockButton" class="primary" type="submit">解鎖料表</button></div>
+      <p class="muted">密碼只在此裝置解密使用，不會傳送到網站。</p>
+    </form>
+  </dialog>
+  <noscript>請啟用瀏覽器 JavaScript，才能使用料表工具。</noscript>
+</body>
+</html>
